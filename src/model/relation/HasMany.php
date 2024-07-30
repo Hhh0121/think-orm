@@ -346,17 +346,16 @@ class HasMany extends Relation
         }
 
         $fields = $this->getRelationQueryFields($fields, $model);
-        $softDelete = $this->query->getOptions('soft_delete');
         $query = $query ?: $this->parent->db();
 
         return $query->alias($model)
+            ->via($model)
             ->group($model . '.' . $this->localKey)
             ->field($fields)
             ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
-            ->where($where);
+            ->where(function ($query) use ($where) {
+                $query->where($where);
+            });
     }
 
     /**
